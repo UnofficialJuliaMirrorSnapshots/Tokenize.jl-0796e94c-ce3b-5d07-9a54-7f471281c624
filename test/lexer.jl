@@ -358,6 +358,7 @@ end
     @test tok("1.+ ").kind == Tokens.INTEGER
     @test tok("1.⤋").kind  == Tokens.INTEGER
     @test tok("1..").kind  == Tokens.INTEGER
+    @test T.kind.(collect(tokenize("1f0./1"))) == [T.FLOAT, T.OP, T.INTEGER, T.ENDMARKER]
 end
 
 
@@ -526,6 +527,7 @@ end
 
 @testset "dot startpos" begin
     @test Tokenize.Tokens.startpos(tok("./")) == (1,1)
+    @test Tokenize.Tokens.startbyte(tok(".≤")) == 0
 end
 
 @testset "token errors" begin
@@ -537,4 +539,8 @@ end
     @test tok("0op",1).token_error === Tokens.INVALID_NUMERIC_CONSTANT
     @test tok("--",1).token_error === Tokens.INVALID_OPERATOR
     @test tok("1**2",2).token_error === Tokens.INVALID_OPERATOR
+end
+
+@testset "hat suffix" begin 
+    @test tok("ŝ", 1).kind==Tokens.IDENTIFIER
 end

@@ -298,8 +298,8 @@ end
 
 Returns the next `Token`.
 """
-function next_token(l::Lexer)
-    start_token!(l)
+function next_token(l::Lexer, start = true)
+    start && start_token!(l)
     c = readchar(l)
     if eof(c);
         return emit(l, Tokens.ENDMARKER)
@@ -638,7 +638,9 @@ function lex_digit(l::Lexer, kind)
             readchar(l)
             accept(l, "+-")
             if accept_batch(l, isdigit)
-                if accept(l, '.') # 1.2e2.3 -> [ERROR, 3]
+                pc,ppc = dpeekchar(l)
+                if pc === '.' && !dotop2(ppc, ' ')
+                    accept(l, '.')
                     return emit_error(l, Tokens.INVALID_NUMERIC_CONSTANT)
                 end
             else
@@ -654,7 +656,9 @@ function lex_digit(l::Lexer, kind)
         readchar(l)
         accept(l, "+-")
         if accept_batch(l, isdigit)
-            if accept(l, '.') # 1.2e2.3 -> [ERROR, 3]
+            pc,ppc = dpeekchar(l)
+            if pc === '.' && !dotop2(ppc, ' ')
+                accept(l, '.')
                 return emit_error(l, Tokens.INVALID_NUMERIC_CONSTANT)
             end
         else
@@ -854,7 +858,7 @@ function lex_dot(l::Lexer)
         pc, dpc = dpeekchar(l)
         if dotop1(pc)
             l.dotop = true
-            return next_token(l)
+            return next_token(l, false)
         elseif pc =='+'
             l.dotop = true
             readchar(l)
